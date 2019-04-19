@@ -14,7 +14,7 @@ class Config(object):
                     os.environ.get('HOME', './'),
                     '.mesos-viewer')
         if config_file is None:
-            self.config_file = "config"
+            self.config_file = "config.ini"
 
         if not os.path.exists(self.config_dir):
             os.makedirs(self.config_dir)
