@@ -54,7 +54,6 @@ class Config(object):
         if not self.parser.has_option('keybindings', 'reload_config'):
             self.parser.set('keybindings', 'reload_config', 'ctrl R')
 
-
         if not self.parser.has_option('keybindings', 'sort_by_name'):
             self.parser.set('keybindings', 'sort_by_name', 'n')
         if not self.parser.has_option('keybindings', 'sort_by_cpu'):

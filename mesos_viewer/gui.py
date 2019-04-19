@@ -99,7 +99,6 @@ class ItemWidget(urwid.WidgetWrap):
         return urwid.GridFlow(tasks_lst, 1, 1, 0, 'left')
 
 
-
 class MesosGui(object):
     """ The MesosGui object """
 
@@ -121,17 +120,17 @@ class MesosGui(object):
 
         self.sort_asc = "▲"
         self.sort_desc = "▼"
-        self.col_name      = "FRAMEWORKS"
-        self.col_name_asc  = "FRAMEWORKS▲"
+        self.col_name = "FRAMEWORKS"
+        self.col_name_asc = "FRAMEWORKS▲"
         self.col_name_desc = "FRAMEWORKS▼"
-        self.col_memory      = "MEM"
-        self.col_memory_asc  = "MEM▲"
+        self.col_memory = "MEM"
+        self.col_memory_asc = "MEM▲"
         self.col_memory_desc = "MEM▼"
-        self.col_cpus      = "CPUs"
-        self.col_cpus_asc  = "CPUs▲"
+        self.col_cpus = "CPUs"
+        self.col_cpus_asc = "CPUs▲"
         self.col_cpus_desc = "CPUs▼"
-        self.col_uptime     = "UPTIME"
-        self.col_uptime_asc  = "UPTIME▲"
+        self.col_uptime = "UPTIME"
+        self.col_uptime_asc = "UPTIME▲"
         self.col_uptime_desc = "UPTIME▼"
 
     def main(self):
@@ -172,7 +171,6 @@ class MesosGui(object):
 
         self.help = Popup(self.help_msg, ('help', 'help'), (0, 1), self.view)
 
-
     def get_lable(self, label):
         switcher = {
             "name": (self.col_name, 1, 10),
@@ -182,23 +180,23 @@ class MesosGui(object):
         }
         return switcher.get(label, (self.col_name, 1, 10))
 
-    def get_header_label(self, lable):
-        heading, index, length = self.get_lable(lable)
-        if lable in self.sort_on:
+    def get_header_label(self, label):
+        heading, index, length = self.get_lable(label)
+        if label in self.sort_on:
             return "{}{}".format(heading, self.sort_desc if self.sort_reverse else self.sort_asc)
         return heading
 
     def get_header_content(self):
         return [
-            self.get_fixed_header(msg = ' N°', length = 4),
-                         urwid.AttrWrap(urwid.Text(self.get_header_label("name"), align="center"), 'title'),
+            self.get_fixed_header(msg=' N°', length=4),
+            urwid.AttrWrap(urwid.Text(self.get_header_label("name"), align="center"), 'title'),
             ('fixed', 14, urwid.AttrMap(urwid.Text(self.total_frameworks, align="center"), 'name', 'focus')),
             ('fixed', 64, urwid.Columns(get_legend(), dividechars=0)),
-            self.get_fixed_header(self.get_header_label("uptime"), length = 19),
-            self.get_fixed_header(self.get_header_label("memory"), length = 10),
-            self.get_fixed_header(self.get_header_label("cpus"), length = 5),
-            self.get_fixed_header(msg = 'Tsks', length = 4),
-            self.get_fixed_header(msg = 'Tsks', length = 20)
+            self.get_fixed_header(self.get_header_label("uptime"), length=19),
+            self.get_fixed_header(self.get_header_label("memory"), length=10),
+            self.get_fixed_header(self.get_header_label("cpus"), length=5),
+            self.get_fixed_header(msg='Tsks', length=4),
+            self.get_fixed_header(msg='Tsks', length=20)
         ]
 
     def build_interface(self):
@@ -214,7 +212,6 @@ class MesosGui(object):
         self.update_frameworks(self.frameworks)
         if len(self.frameworks) > 0:
             self.total_frameworks = "Total: [{}]".format(str(len(self.frameworks)))
-        # self.legend = get_legend()
 
         self.header_content = self.get_header_content()
 
@@ -240,10 +237,9 @@ class MesosGui(object):
         self.build_help()
         self.already_build = True
 
-    def get_fixed_header(self, msg = 'empty', style = 'header', align = 'center', length = 20):
+    @staticmethod
+    def get_fixed_header(msg='empty', style='header', align='center', length=20):
         return ('fixed', length, urwid.Padding(urwid.AttrWrap(urwid.Text(msg, align=align), style)))
-
-
 
     def set_header_component(self, msg, section_id=1, style='title', align='center'):
         """ Set header message """
@@ -252,13 +248,13 @@ class MesosGui(object):
         self.view.set_header(urwid.Columns(self.header_content, dividechars=1))
 
     def sort_items(self):
-        self.set_footer_component("Sorting by {} {}...".format(self.sort_on, "in reverse" if not self.sort_reverse else "") , 0)        
+        self.set_footer_component(
+            "Sorting by {} {}...".format(self.sort_on, "in reverse" if not self.sort_reverse else ""), 0)
         threading.Thread(None, self.async_refresher, None, (), {'force': True}).start()
         self.view.set_header(urwid.Columns(self.get_header_content(), dividechars=1))
 
-
-    def get_sorted(self, frameworks, by_key = 'name', reverse = False):
-        return sorted(frameworks, key=attrgetter(by_key), reverse = self.sort_reverse)
+    def get_sorted(self, frameworks, by_key='name'):
+        return sorted(frameworks, key=attrgetter(by_key), reverse=self.sort_reverse)
 
     def update_frameworks(self, frameworks):
         """ Reload listbox and walker with new frameworks """
@@ -277,19 +273,14 @@ class MesosGui(object):
             self.walker = urwid.SimpleListWalker(items)
             self.listbox = urwid.ListBox(self.walker)
 
-
-
     def update(self):
         """ Update footer about focus framework """
         focus = self.listbox.get_focus()[0]
         msg = "submitted @ [%s], running since [%s]" % (focus.uptime, focus.uptime_descriptive)
         self.set_footer_component(msg=msg, section_id=0)
 
-
-
     def get_timer(self):
         return urwid.AttrWrap(urwid.Text(str(self.poller.counter), align="center"), 'title')
-
 
     def async_update_timer(self, counter=0, delay=10):
         remaining = int(delay - counter)
@@ -307,7 +298,6 @@ class MesosGui(object):
             self.set_header_component(header)
             self.which = which
         self.loop.draw_screen()
-
 
     def set_help(self):
         """ Set help msg in footer """
@@ -327,7 +317,6 @@ class MesosGui(object):
         self.footer_content[section_id] = urwid.AttrWrap(urwid.Text(msg, align=align), style)
         self.view.set_footer(urwid.Columns(self.footer_content, dividechars=1))
 
-
     def keystroke(self, user_input):
         """ All key bindings are computed here """
         # QUIT
@@ -340,7 +329,8 @@ class MesosGui(object):
             self.set_footer_component(msg=self.listbox.get_focus()[0].url, section_id=0)
 
         # MOVEMENTS
-        if user_input in self.bindings['down'].split(',') and self.listbox.focus_position - 1 in self.walker.positions():
+        if user_input in self.bindings['down'].split(
+                ',') and self.listbox.focus_position - 1 in self.walker.positions():
             self.listbox.set_focus(
                     self.walker.prev_position(self.listbox.focus_position))
         if user_input in self.bindings['up'].split(',') and self.listbox.focus_position + 1 in self.walker.positions():
