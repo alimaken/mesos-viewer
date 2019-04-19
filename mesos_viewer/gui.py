@@ -14,8 +14,7 @@ from mesos_viewer import __version__
 class ItemWidget(urwid.WidgetWrap):
     """ Widget of listbox, represent each framework """
 
-    def __init__(self, framework, w, sn=0):
-        super().__init__(w)
+    def __init__(self, framework, sn=0):
         self.sn = sn
         self.framework = framework
         self.framework_id = framework.id
@@ -209,13 +208,14 @@ class MesosGui(object):
         self.frameworks = self.cache_manager.get_frameworks()
 
         self.update_frameworks(self.frameworks)
-
+        if len(self.frameworks) > 0:
+            total_frameworks = "Total: [{}]".format(str(len(self.frameworks)))
         legend = get_legend()
 
         self.header_content = [
             ('fixed', 4, urwid.Padding(urwid.AttrWrap(urwid.Text(' N°', align="center"), 'header'))),
             urwid.AttrWrap(urwid.Text('FRAMEWORKS', align="center"), 'title'),
-            ('fixed', 10, urwid.AttrMap(urwid.Text("", align="center"), 'name', 'focus')),
+            ('fixed', 14, urwid.AttrMap(urwid.Text(total_frameworks, align="center"), 'name', 'focus')),
             ('fixed', 64, urwid.Columns(legend, dividechars=0)),
             ('fixed', 10, urwid.Padding(urwid.AttrWrap(urwid.Text('MEM', align="center"), 'header'))),
             ('fixed', 4, urwid.Padding(urwid.AttrWrap(urwid.Text('CPUs', align="center"), 'header'))),
@@ -347,8 +347,7 @@ class MesosGui(object):
                 items.append(ItemWidget(framework, sn))
             item_ids.append(framework.id)
             sn += 1
-        if len(items) > 0:
-            self.set_header_component("Total: [{}]".format(str(len(items))), section_id=2, style='bad_name')
+
         if self.already_build:
             self.walker[:] = items
             self.update()
