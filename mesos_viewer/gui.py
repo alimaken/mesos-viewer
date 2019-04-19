@@ -207,12 +207,15 @@ class MesosGui(object):
             self.cache_manager.refresh()
 
         self.frameworks = self.cache_manager.get_frameworks()
+
         self.update_frameworks(self.frameworks)
+
         legend = get_legend()
+
         self.header_content = [
             ('fixed', 4, urwid.Padding(urwid.AttrWrap(urwid.Text(' N°', align="center"), 'header'))),
             urwid.AttrWrap(urwid.Text('FRAMEWORKS', align="center"), 'title'),
-            ('fixed', 10, self.get_timer()),
+            ('fixed', 10, urwid.AttrMap(urwid.Text("", align="center"), 'name', 'focus')),
             ('fixed', 64, urwid.Columns(legend, dividechars=0)),
             ('fixed', 10, urwid.Padding(urwid.AttrWrap(urwid.Text('MEM', align="center"), 'header'))),
             ('fixed', 4, urwid.Padding(urwid.AttrWrap(urwid.Text('CPUs', align="center"), 'header'))),
@@ -230,8 +233,8 @@ class MesosGui(object):
 
         self.footer = urwid.Columns(self.footer_content, dividechars=1)
 
-        self.view = urwid.Frame(urwid.AttrWrap(
-                self.listbox, 'body'), header=self.header, footer=self.footer)
+        self.view = urwid.Frame(urwid.AttrWrap(self.listbox, 'body'), header=self.header, footer=self.footer)
+
         self.loop = urwid.MainLoop(
                 self.view,
                 self.palette,
@@ -344,7 +347,8 @@ class MesosGui(object):
                 items.append(ItemWidget(framework, sn))
             item_ids.append(framework.id)
             sn += 1
-
+        if len(items) > 0:
+            self.set_header_component("Total: [{}]".format(str(len(items))), section_id=2, style='bad_name')
         if self.already_build:
             self.walker[:] = items
             self.update()
@@ -397,10 +401,8 @@ class MesosGui(object):
         self.loop.draw_screen()
         self.set_footer_component(msg='Configuration file reloaded!', section_id=0)
 
-        if self.config.parser.get(
-                'settings', 'cache') != self.cache_manager.cache_path:
-            self.cache_manager.cache_path = self.config.parser.get(
-                    'settings', 'cache')
+        if self.config.parser.get('settings', 'cache') != self.cache_manager.cache_path:
+            self.cache_manager.cache_path = self.config.parser.get('settings', 'cache')
 
     def exit(self, must_raise=False):
         self.poller.is_running = False
