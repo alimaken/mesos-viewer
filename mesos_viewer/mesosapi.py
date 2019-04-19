@@ -33,7 +33,8 @@ class MesosAPI:
         resources = framework_raw["resources"]
         framework.name = framework_raw["name"]
 
-        framework.memory = str(int(resources["mem"])) + "MB"
+        framework.memory = int(resources["mem"])
+        framework.memory_str = str(int(resources["mem"])) + "MB"
         framework.cpus = int(resources["cpus"])
         framework.url = framework_raw["webui_url"]
         framework.tasks = framework_raw["tasks"]
@@ -71,6 +72,7 @@ class Framework:
     id = 0  # The ID of a framework.
     name = ""  # Framework name
     memory = None  # Memory allocated
+    memory_str = None  # Memory allocated
     cpus = None  # CPU Cores.
     tasks_len = None  # Number of running tasks.
     tasks = None  # tasks of framework
@@ -86,8 +88,8 @@ class Framework:
         print("ID: " + str(self.id))
         print("name: %s" % self.name)
         print("URL: %s" % self.url)
-        print("CPU: " + str(self.cpus) + " cores")
-        print("Mem: " + self.memory)
+        print("CPUs: " + str(self.cpus) + " cores")
+        print("Mem: " + self.memory_str)
         print("Tasks: " + str(self.tasks_len))
         print("Uptime %s" + self.uptime)
         print("Uptime Descriptive %s" + self.uptime_descriptive)
