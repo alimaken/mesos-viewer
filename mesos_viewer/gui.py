@@ -51,14 +51,11 @@ class ItemWidget(urwid.WidgetWrap):
         self.item = [
             ('fixed', 4, urwid.Padding(urwid.AttrMap(urwid.Text(sn_text, align=sn_align), framework_color, 'focus'))),
             urwid.AttrMap(urwid.Text(self.name), framework_color, 'focus'),
-            ('fixed', 19,
-             urwid.Padding(urwid.AttrMap(urwid.Text(self.uptime, align="right"), framework_color, 'focus'))),
-            ('fixed', 10,
-             urwid.Padding(urwid.AttrMap(urwid.Text(self.memory, align="right"), framework_color, 'focus'))),
-            ('fixed', 5,
-             urwid.Padding(urwid.AttrMap(urwid.Text(str(self.cpus), align="right"), framework_color, 'focus'))),
-            ('fixed', 4,
-             urwid.Padding(urwid.AttrMap(urwid.Text(self.tasks_len, align="right"), framework_color, 'focus'))),
+            ('fixed', 19, urwid.Padding(urwid.AttrMap(urwid.Text(self.uptime, align="right"), framework_color, 'focus'))),
+            ('fixed', 28, urwid.Padding(urwid.AttrMap(urwid.Text(self.uptime_descriptive, align="right"), framework_color, 'focus'))),
+            ('fixed', 10, urwid.Padding(urwid.AttrMap(urwid.Text(self.memory, align="right"), framework_color, 'focus'))),
+            ('fixed', 5, urwid.Padding(urwid.AttrMap(urwid.Text(str(self.cpus), align="right"), framework_color, 'focus'))),
+            ('fixed', 4, urwid.Padding(urwid.AttrMap(urwid.Text(self.tasks_len, align="right"), framework_color, 'focus'))),
             ('fixed', 20, self.get_tasks_str(self.tasks))
         ]
 
@@ -132,6 +129,8 @@ class MesosGui(object):
         self.col_uptime = "UPTIME"
         self.col_uptime_asc = "UPTIME▲"
         self.col_uptime_desc = "UPTIME▼"
+        self.col_upsince = "UP SINCE"
+
 
     def main(self):
         """
@@ -174,9 +173,10 @@ class MesosGui(object):
     def get_lable(self, label):
         switcher = {
             "name": (self.col_name, 1, 10),
-            "cpus": (self.col_cpus, 6, 5),
-            "memory": (self.col_memory, 5, 10),
-            "uptime": (self.col_uptime, 4, 19)
+            "cpus": (self.col_cpus, 7, 5),
+            "memory": (self.col_memory, 6, 10),
+            "uptime": (self.col_uptime, 4, 19),
+            "upsince": (self.col_upsince, 5, 28)
         }
         return switcher.get(label, (self.col_name, 1, 10))
 
@@ -193,6 +193,7 @@ class MesosGui(object):
             ('fixed', 14, urwid.AttrMap(urwid.Text(self.total_frameworks, align="center"), 'name', 'focus')),
             ('fixed', 64, urwid.Columns(get_legend(), dividechars=0)),
             self.get_fixed_header(self.get_header_label("uptime"), length=19),
+            self.get_fixed_header(self.get_header_label("upsince"), length=28),
             self.get_fixed_header(self.get_header_label("memory"), length=10),
             self.get_fixed_header(self.get_header_label("cpus"), length=5),
             self.get_fixed_header(msg='Tsks', length=4),
@@ -360,6 +361,10 @@ class MesosGui(object):
             self.sort_items()
         if user_input in self.bindings['sort_by_uptime'].split(','):
             self.sort_on = "uptime"
+            self.sort_reverse = not self.sort_reverse
+            self.sort_items()
+        if user_input in self.bindings['sort_by_upsince'].split(','):
+            self.sort_on = "upsince"
             self.sort_reverse = not self.sort_reverse
             self.sort_items()
 

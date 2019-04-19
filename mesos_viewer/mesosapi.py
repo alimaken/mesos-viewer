@@ -44,6 +44,7 @@ class MesosAPI:
         diff = (now - ts_epoch)
         framework.uptime = datetime.datetime.fromtimestamp(ts_epoch).strftime('%Y-%m-%d %H:%M:%S')
         framework.uptime_descriptive = str(datetime.timedelta(seconds=diff))
+        framework.upsince = datetime.timedelta(seconds=diff)
         return framework
 
     @staticmethod
@@ -78,6 +79,7 @@ class Framework:
     tasks = None  # tasks of framework
     uptime = ""  # Framework registration time
     uptime_descriptive = ""  # Framework registration time since
+    upsince = None
     url = ""  # The URL of framework UI.
 
     def print_details(self):
