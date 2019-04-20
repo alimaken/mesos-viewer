@@ -22,7 +22,7 @@ browser_cmd = __default__
 refresh_interval = 30
 
 [mesos]
-master_ip = odhecx52
+master_ip = localhost
 master_port = 5040
 mesos_frameworks_url = /master/frameworks
 mesos_metrics_url = /metrics/snapshot
