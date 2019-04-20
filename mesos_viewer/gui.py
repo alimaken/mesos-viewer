@@ -250,7 +250,7 @@ class MesosGui(object):
 
     def sort_items(self):
         self.set_footer_component(
-            "Sorting by {} {}...".format(self.sort_on, "in reverse" if not self.sort_reverse else ""), 0)
+            "Sorting by {} {}...".format(self.sort_on, "in reverse" if not self.sort_reverse == False else ""), 0)
         threading.Thread(None, self.async_refresher, None, (), {'force': True}).start()
         self.view.set_header(urwid.Columns(self.get_header_content(), dividechars=1))
 
