@@ -13,9 +13,13 @@ class CacheManager(object):
         if cache_path is None:
             self.config = Config()
             self.cache_path = self.config.parser.get('settings', 'cache')
-
+        
         self.cache_age = int(self.config.parser.get('settings', 'cache_age'))
         self.mesos_api = MesosAPI()
+        self.master_ip = self.config.parser.get('mesos', 'master_ip')
+        self.master_port = self.config.parser.get('mesos', 'master_port')
+        self.mesos_frameworks_url = self.config.parser.get('mesos', 'mesos_frameworks_url')
+        self.mesos_metrics_url = self.config.parser.get('mesos', 'mesos_metrics_url')
 
         if not os.path.exists(self.cache_path):
             self.refresh()
@@ -39,7 +43,12 @@ class CacheManager(object):
 
     def refresh(self, which="frameworks"):
         if which == "frameworks":
-            frameworks = self.mesos_api.get_frameworks()
+            frameworks = self.mesos_api.get_frameworks(
+                self.mesos_api.get_url(
+                    self.master_ip,
+                    self.master_port,
+                    self.mesos_frameworks_url
+                    ))
         else:
             raise Exception('Bad value')
 

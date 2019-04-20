@@ -80,6 +80,19 @@ class Config(object):
         if not self.parser.has_option('settings', 'refresh_interval'):
             self.parser.set('settings', 'refresh_interval', '30')
 
+        # Mesos
+        if not self.parser.has_section('mesos'):
+            self.parser.add_section('mesos')
+
+        if not self.parser.has_option('mesos', 'master_ip'):
+            self.parser.set('mesos', 'master_ip', 'localhost')
+        if not self.parser.has_option('mesos', 'master_port'):
+            self.parser.set('mesos', 'master_port', '5040')
+        if not self.parser.has_option('mesos', 'mesos_frameworks_url'):
+            self.parser.set('mesos', 'mesos_frameworks_url', '/master/frameworks')
+        if not self.parser.has_option('mesos', 'mesos_metrics_url'):
+            self.parser.set('mesos', 'mesos_metrics_url', '/metrics/snapshot')
+
         # Colors
         if not self.parser.has_section('colors'):
             self.parser.add_section('colors')

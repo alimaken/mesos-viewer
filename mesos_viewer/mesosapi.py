@@ -53,17 +53,20 @@ class MesosAPI:
         json = resp.json()
         return json
 
-    def get_frameworks(self):
-        url = "http://odhecx52:5040/master/frameworks"
+    def get_frameworks(self, url):
         data = self.get_json(url)
         frameworks = self.parse_raw_frameworks(data["frameworks"])
         return frameworks
 
-    def get_framework_by_id(self, framework_id):
-        url = "http://odhecx52:5040/master/frameworks?framework_id={}".format(framework_id)
-        data = self.get_json(url)
+    def get_framework_by_id(self, url, framework_id):
+        framework_url = "{}?framework_id={}".format(url, framework_id)
+        data = self.get_json(framework_url)
         frameworks = self.parse_raw_frameworks(data["frameworks"])
         return frameworks
+
+    @staticmethod
+    def get_url(host, port, url):
+        return "http://{}:{}{}".format(host, port, url)
 
 
 class Framework:
