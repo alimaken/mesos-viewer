@@ -3,7 +3,10 @@ import sys
 import urwid
 import subprocess
 import threading
+import re
 
+from fuzzywuzzy import fuzz
+from fuzzywuzzy import process
 from operator import attrgetter
 from datasize import DataSize
 from mesos_viewer.popup import Popup
@@ -114,6 +117,7 @@ class MesosGui(object):
 
         self.sort_on = "name"
         self.sort_reverse = False
+        self.in_search = False
 
         self.sort_asc = "▲"
         self.sort_desc = "▼"
@@ -130,6 +134,10 @@ class MesosGui(object):
         self.col_uptime_asc = "UPTIME▲"
         self.col_uptime_desc = "UPTIME▼"
         self.col_upsince = "UP SINCE"
+        self.TEXT_CAPTION = " >> "
+        self.widgetEdit = urwid.Edit(self.TEXT_CAPTION, "", multiline=False)
+
+        self.frameworks = []
 
 
     def main(self):
@@ -257,6 +265,8 @@ class MesosGui(object):
     def get_sorted(self, frameworks, by_key='name'):
         return sorted(frameworks, key=attrgetter(by_key), reverse=self.sort_reverse)
 
+
+
     def update_frameworks(self, frameworks):
         """ Reload listbox and walker with new frameworks """
         items = []
@@ -269,7 +279,7 @@ class MesosGui(object):
 
         if self.already_build:
             self.walker[:] = items
-            self.update()
+            # self.update()
         else:
             self.walker = urwid.SimpleListWalker(items)
             self.listbox = urwid.ListBox(self.walker)
@@ -277,8 +287,9 @@ class MesosGui(object):
     def update(self):
         """ Update footer about focus framework """
         focus = self.listbox.get_focus()[0]
-        msg = "submitted @ [%s], running since [%s]" % (focus.uptime, focus.uptime_descriptive)
-        self.set_footer_component(msg=msg, section_id=0)
+        if focus:
+            msg = "submitted @ [%s], running since [%s]" % (focus.uptime, focus.uptime_descriptive)
+            self.set_footer_component(msg=msg, section_id=0)
 
     def get_timer(self):
         return urwid.AttrWrap(urwid.Text(str(self.poller.counter), align="center"), 'title')
@@ -294,6 +305,7 @@ class MesosGui(object):
         if self.cache_manager.is_outdated(which) or force:
             self.cache_manager.refresh(which)
         frameworks = self.cache_manager.get_frameworks(which)
+        self.frameworks = frameworks
         self.update_frameworks(frameworks)
         if header is not None:
             self.set_header_component(header)
@@ -318,8 +330,39 @@ class MesosGui(object):
         self.footer_content[section_id] = urwid.AttrWrap(urwid.Text(msg, align=align), style)
         self.view.set_footer(urwid.Columns(self.footer_content, dividechars=1))
 
+    def activate_search(self):
+        self.in_search = True
+        self.footer_content[0] = self.widgetEdit
+        self.view.set_footer(urwid.Columns(self.footer_content, dividechars=1))
+        # self.widgetEdit.set_focus(2)
+        self.view.focus_position = 'footer'
+
+
+    def dectivate_search(self):
+        self.in_search = False
+        self.set_footer_component("", section_id=0)
+        self.view.focus_position = 'body'
+
+
+    def filter_items(self, filter_text = None):
+        if not filter_text:
+            self.update_frameworks(self.frameworks)
+        else:
+            self.update_frameworks(filter(lambda x : fuzz.token_set_ratio(filter_text, x.name) > 90 , self.frameworks))
+        self.loop.draw_screen()
+
+    def handle_search(self, widget, newtext):
+        # debug.set_text("Edit widget changed to %s" % newtext)
+        self.filter_items(newtext)
+
     def keystroke(self, user_input):
         """ All key bindings are computed here """
+
+
+        if user_input == 'enter':
+            msg = self.widgetEdit.get_edit_text()
+            self.dectivate_search()
+
         # QUIT
         if user_input in ('q', 'Q'):
             self.exit(must_raise=True)
@@ -346,6 +389,12 @@ class MesosGui(object):
         if user_input in self.bindings['last_framework'].split(','):
             self.listbox.set_focus(self.walker.positions()[-1])
 
+        if user_input in self.bindings['search'].split(','):
+            self.activate_search()
+        if user_input in self.bindings['exit_search'].split(','):
+            self.dectivate_search()
+
+
         # SORT
         if user_input in self.bindings['sort_by_name'].split(','):
             self.sort_on = "name"
@@ -367,6 +416,9 @@ class MesosGui(object):
             self.sort_on = "upsince"
             self.sort_reverse = not self.sort_reverse
             self.sort_items()
+        if user_input in self.bindings['last_framework'].split(','):
+            self.listbox.set_focus(self.walker.positions()[-1])
+
 
         # OTHERS
         if user_input in self.bindings['refresh'].split(','):
@@ -439,7 +491,8 @@ class MesosGui(object):
         urwid.ExitMainLoop()
 
     def run(self):
-        urwid.connect_signal(self.walker, 'modified', self.update)
+        # urwid.connect_signal(self.walker, 'modified', self.update)
+        urwid.connect_signal(self.widgetEdit, 'change', self.handle_search)
 
         try:
             self.poller.start()
@@ -447,6 +500,8 @@ class MesosGui(object):
         except KeyboardInterrupt:
             self.exit()
         print('Exiting...!!')
+
+
 
 
 def get_legend():

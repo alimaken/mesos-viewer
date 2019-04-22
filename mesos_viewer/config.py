@@ -64,6 +64,10 @@ class Config(object):
             self.parser.set('keybindings', 'sort_by_uptime', 'u')
         if not self.parser.has_option('keybindings', 'sort_by_upsince'):
             self.parser.set('keybindings', 'sort_by_upsince', 't')
+        if not self.parser.has_option('keybindings', 'search'):
+            self.parser.set('keybindings', 'search', '/')
+        if not self.parser.has_option('keybindings', 'exit_search'):
+            self.parser.set('keybindings', 'exit_search', 'escape')
 
         # Paths
         if not self.parser.has_section('settings'):
