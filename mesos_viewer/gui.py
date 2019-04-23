@@ -136,8 +136,11 @@ class MesosGui(object):
         self.col_upsince = "UP SINCE"
         self.TEXT_CAPTION = " >> "
         self.widgetEdit = urwid.Edit(self.TEXT_CAPTION, "", multiline=False)
+        # self.widgetEdit = EscapableEditBox(self.TEXT_CAPTION, "", multiline=False)
+        # self.widgetEdit.set_instance(self)
 
         self.frameworks = []
+        self.search_string = ""
 
 
     def main(self):
@@ -218,7 +221,7 @@ class MesosGui(object):
 
         self.frameworks = self.cache_manager.get_frameworks()
 
-        self.update_frameworks(self.frameworks)
+        self.update_frameworks(self.filter_frameworks(self.frameworks))
         if len(self.frameworks) > 0:
             self.total_frameworks = "Total: [{}]".format(str(len(self.frameworks)))
 
@@ -306,7 +309,7 @@ class MesosGui(object):
             self.cache_manager.refresh(which)
         frameworks = self.cache_manager.get_frameworks(which)
         self.frameworks = frameworks
-        self.update_frameworks(frameworks)
+        self.update_frameworks(self.filter_frameworks(frameworks))
         if header is not None:
             self.set_header_component(header)
             self.which = which
@@ -342,18 +345,23 @@ class MesosGui(object):
         self.in_search = False
         self.set_footer_component("", section_id=0)
         self.view.focus_position = 'body'
+        # self.widgetEdit.set_edit_text("")
+        # self.search_string = ""
 
-
-    def filter_items(self, filter_text = None):
-        if not filter_text:
-            self.update_frameworks(self.frameworks)
+    def filter_frameworks(self, frameworks):
+        if self.search_string:
+            return filter(lambda x : fuzz.partial_ratio(self.search_string, x.name) > 80 , self.frameworks)
         else:
-            self.update_frameworks(filter(lambda x : fuzz.token_set_ratio(filter_text, x.name) > 90 , self.frameworks))
+            return frameworks
+
+    def filter_items(self):
+        self.update_frameworks(self.filter_frameworks(self.frameworks))
         self.loop.draw_screen()
 
     def handle_search(self, widget, newtext):
         # debug.set_text("Edit widget changed to %s" % newtext)
-        self.filter_items(newtext)
+        self.search_string = newtext.strip()
+        self.filter_items()
 
     def keystroke(self, user_input):
         """ All key bindings are computed here """
@@ -363,14 +371,22 @@ class MesosGui(object):
             msg = self.widgetEdit.get_edit_text()
             self.dectivate_search()
 
+        if user_input == 'escape' and self.in_search:
+            self.dectivate_search()
+
+
         # QUIT
         if user_input in ('q', 'Q'):
             self.exit(must_raise=True)
 
         if user_input in self.bindings['open_framework_link'].split(','):
-            self.open_webbrowser(self.listbox.get_focus()[0].url)
+            selected_item = self.listbox.get_focus()[0]
+            if selected_item:
+                self.open_webbrowser(selected_item.url)
         if user_input in self.bindings['show_framework_link'].split(','):
-            self.set_footer_component(msg=self.listbox.get_focus()[0].url, section_id=0)
+            selected_item = self.listbox.get_focus()[0]
+            if selected_item:
+                self.set_footer_component(msg=self.listbox.get_focus()[0].url, section_id=0)
 
         # MOVEMENTS
         if user_input in self.bindings['down'].split(
@@ -501,7 +517,17 @@ class MesosGui(object):
             self.exit()
         print('Exiting...!!')
 
+class EscapableEditBox(MesosGui, urwid.Edit):
+    def __init__(self):
+        self.MesosGui = None
 
+    def set_instance(self, MesosGui):
+        self.MesosGui = MesosGui
+
+    def keypress(self, size, key):
+        if key != 'escape':
+            return super(EscapableEditBox, self).keypress(size, key)
+        self.MesosGui.dectivate_search()
 
 
 def get_legend():

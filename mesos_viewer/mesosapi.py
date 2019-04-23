@@ -2,7 +2,7 @@
 import time
 import datetime
 import requests
-
+import sys
 
 class MesosException(Exception):
     """
@@ -49,9 +49,22 @@ class MesosAPI:
 
     @staticmethod
     def get_json(url):
-        resp = requests.get(url=url)
-        json = resp.json()
-        return json
+        try:
+            resp = requests.get(url=url, timeout = 5)
+            resp.raise_for_status()
+            json = resp.json()
+            return json
+        except requests.exceptions.HTTPError as errh:
+            print ("Http Error:",errh)
+        except requests.exceptions.ConnectionError as errc:
+            print ("Error Connecting:",errc)
+        except requests.exceptions.Timeout as errt:
+            print ("Timeout Error:",errt)
+        except requests.exceptions.RequestException as err:
+            print ("OOps: Something Else",err)
+        print ("Exiting now.")
+        sys.exit(1)
+        
 
     def get_frameworks(self, url):
         data = self.get_json(url)
