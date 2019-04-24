@@ -192,7 +192,7 @@ class MesosGui(object):
         return switcher.get(label, (self.col_name, 1, 10))
 
     def get_header_label(self, label):
-        heading, index, length = self.get_lable(label)
+        heading, _, _ = self.get_lable(label)
         if label in self.sort_on:
             return "{}{}".format(heading, self.sort_desc if self.sort_reverse else self.sort_asc)
         return heading
@@ -236,9 +236,7 @@ class MesosGui(object):
         ]
 
         self.footer = urwid.Columns(self.footer_content, dividechars=1)
-
-        self.view = urwid.Frame(urwid.AttrWrap(self.listbox, 'body'), header=self.header, footer=self.footer)
-
+        self.view = urwid.Frame(urwid.LineBox(urwid.AttrWrap(self.listbox, 'body')), header=self.header, footer=self.footer)        
         self.loop = urwid.MainLoop(
                 self.view,
                 self.palette,
@@ -368,7 +366,7 @@ class MesosGui(object):
 
 
         if user_input == 'enter':
-            msg = self.widgetEdit.get_edit_text()
+            # msg = self.widgetEdit.get_edit_text()
             self.dectivate_search()
 
         if user_input == 'escape' and self.in_search:
