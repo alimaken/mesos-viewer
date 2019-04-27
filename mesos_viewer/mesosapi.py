@@ -4,6 +4,8 @@ import datetime
 import requests
 import sys
 
+from eliot import start_action, to_file
+
 class MesosException(Exception):
     """
     MesosException is exactly the same as a plain Python Exception.
@@ -14,10 +16,13 @@ class MesosException(Exception):
     pass
 
 
-class MesosAPI:
+class MesosAPI(object):
     """
     The class for parsing Mesos JSON response in to objects.
     """
+
+    def __init__(self):
+        to_file(open("mesos-viewer.log", "w"))
 
     def parse_raw_frameworks(self, raw_frameworks):
         frameworks = []
@@ -67,9 +72,11 @@ class MesosAPI:
         
 
     def get_frameworks(self, url):
-        data = self.get_json(url)
-        frameworks = self.parse_raw_frameworks(data["frameworks"])
-        return frameworks
+        with start_action(action_type="get_json", url=url):
+            data = self.get_json(url)
+            with start_action(action_type="parse_raw_frameworks"):
+                frameworks = self.parse_raw_frameworks(data["frameworks"])
+                return frameworks
 
     def get_framework_by_id(self, url, framework_id):
         framework_url = "{}?framework_id={}".format(url, framework_id)

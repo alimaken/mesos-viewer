@@ -13,7 +13,7 @@ from mesos_viewer.popup import Popup
 from mesos_viewer.poller import Poller
 from mesos_viewer.config import Config
 from mesos_viewer import __version__
-
+from eliot import start_action, to_file
 
 class ItemWidget(urwid.WidgetWrap):
     """ Widget of listbox, represent each framework """
@@ -103,6 +103,7 @@ class MesosGui(object):
     """ The MesosGui object """
 
     def __init__(self, cache_manager):
+        to_file(open("mesos-viewer.log", "w"))
         self.cache_manager = cache_manager
         self.already_build = False
         self.on_comments = False
@@ -150,7 +151,8 @@ class MesosGui(object):
         """
         self.ui = urwid.raw_display.Screen()
         self.ui.register_palette(self.palette)
-        self.build_interface()
+        with start_action(action_type="build_interface"):
+            self.build_interface()
         self.ui.run_wrapper(self.run)
 
     def build_help(self):
