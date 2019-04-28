@@ -4,8 +4,6 @@ class Framework(object):
     A class representing a framework on Mesos.
     """
 
-
-
     id = 0  # The ID of a framework.
     name = ""  # Framework name
     memory = None  # Memory allocated
@@ -17,7 +15,6 @@ class Framework(object):
     uptime_descriptive = ""  # Framework registration time since
     upsince = None
     url = ""  # The URL of framework UI.
-
 
     def __init__(self):
         pass

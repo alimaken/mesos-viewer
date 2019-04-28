@@ -23,6 +23,7 @@ class CacheManager(object):
         self.mesos_frameworks_url = self.config.parser.get('mesos', 'mesos_frameworks_url')
         self.mesos_metrics_url = self.config.parser.get('mesos', 'mesos_metrics_url')
         self.mesos_redirect_url = self.config.parser.get('mesos', 'mesos_redirect_url')
+        self.current_master = ""
 
     def is_outdated(self, which="frameworks"):
         return True
@@ -31,19 +32,23 @@ class CacheManager(object):
         pass
 
     def get_frameworks(self, which="frameworks"):
-        return self.mesos_api.get_frameworks(
+        self.current_master = self.mesos_api.current_master
+        data = self.mesos_api.get_frameworks(
             self.mesos_api.get_url(
                 self.master_ip,
                 self.master_port,
                 self.mesos_frameworks_url,
                 self.mesos_redirect_url
                 ))
+        return data
 
     def get_metrics(self):
-        return self.mesos_api.get_metrics(
+        self.current_master = self.mesos_api.current_master
+        data = self.mesos_api.get_metrics(
             self.mesos_api.get_url(
                 self.master_ip,
                 self.master_port,
                 self.mesos_metrics_url,
                 self.mesos_redirect_url
                 ))
+        return data
