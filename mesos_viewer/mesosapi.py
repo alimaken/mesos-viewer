@@ -18,6 +18,7 @@ class MesosAPI(object):
     def __init__(self):
         to_file(open("mesos-viewer.log", "w"))
         # self.redirect_url = ""
+        self.current_master = ""
 
     def parse_raw_frameworks(self, raw_frameworks):
         frameworks = []
@@ -162,16 +163,11 @@ class MesosAPI(object):
 
     def get_url(self, host, port, url, redirect_url):
         with start_action(action_type="get_url", host=host, port=port, url=url, redirect_url=redirect_url):
-            master = self.get_master("http://{}:{}{}".format(host, port, redirect_url))
-            return "http://{}{}".format(master, url)
+            self.current_master = self.get_master("http://{}:{}{}".format(host, port, redirect_url))
+            return "http://{}{}".format(self.current_master, url)
 
     @staticmethod
     def get_master(url):
         with start_action(action_type="get_master", url=url):
             resp = requests.get(url=url, timeout = 5, allow_redirects=False)
             return resp.headers['Location'].replace('/','')
-
-
-
-
-

@@ -122,6 +122,12 @@ class Config(object):
             self.parser.set('colors', 'bad_name', 'light red,bold|light gray')
         if not self.parser.has_option('colors', 'help'):
             self.parser.set('colors', 'help', 'black|dark cyan|standout')
+        if not self.parser.has_option('colors', 'pg_normal'):
+            self.parser.set('colors', 'pg_normal', 'white|black|standout')
+        if not self.parser.has_option('colors', 'pg_complete'):
+            self.parser.set('colors', 'pg_complete', 'white|dark magenta')
+        if not self.parser.has_option('colors', 'pg_smooth'):
+            self.parser.set('colors', 'pg_smooth', 'dark magenta|black')
 
         if not os.path.exists(self.config_path):
             self.parser.write(open(self.config_path, 'w'))
