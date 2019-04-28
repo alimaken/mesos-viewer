@@ -7,6 +7,7 @@ from mesos_viewer.config import Config
 from mesos_viewer.mesosapi import MesosAPI
 
 
+
 class CacheManager(object):
     def __init__(self, cache_path=None):
         self.cache_path = cache_path
@@ -21,6 +22,7 @@ class CacheManager(object):
         self.master_port = self.config.parser.get('mesos', 'master_port')
         self.mesos_frameworks_url = self.config.parser.get('mesos', 'mesos_frameworks_url')
         self.mesos_metrics_url = self.config.parser.get('mesos', 'mesos_metrics_url')
+        self.mesos_redirect_url = self.config.parser.get('mesos', 'mesos_redirect_url')
 
     def is_outdated(self, which="frameworks"):
         return True
@@ -33,6 +35,15 @@ class CacheManager(object):
             self.mesos_api.get_url(
                 self.master_ip,
                 self.master_port,
-                self.mesos_frameworks_url
+                self.mesos_frameworks_url,
+                self.mesos_redirect_url
                 ))
 
+    def get_metrics(self):
+        return self.mesos_api.get_metrics(
+            self.mesos_api.get_url(
+                self.master_ip,
+                self.master_port,
+                self.mesos_metrics_url,
+                self.mesos_redirect_url
+                ))

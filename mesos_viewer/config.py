@@ -96,6 +96,8 @@ class Config(object):
             self.parser.set('mesos', 'mesos_frameworks_url', '/master/frameworks')
         if not self.parser.has_option('mesos', 'mesos_metrics_url'):
             self.parser.set('mesos', 'mesos_metrics_url', '/metrics/snapshot')
+        if not self.parser.has_option('mesos', 'mesos_redirect_url'):
+            self.parser.set('mesos', 'mesos_redirect_url', '/master/redirect')
 
         # Colors
         if not self.parser.has_section('colors'):

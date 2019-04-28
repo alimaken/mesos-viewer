@@ -223,6 +223,8 @@ class MesosGui(object):
 
         self.frameworks = self.cache_manager.get_frameworks()
 
+        self.metrics = self.cache_manager.get_metrics()
+
         self.update_frameworks(self.filter_frameworks(self.frameworks))
         if len(self.frameworks) > 0:
             self.total_frameworks = "Total: [{}]".format(str(len(self.frameworks)))
