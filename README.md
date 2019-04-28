@@ -15,10 +15,30 @@ mkdir -p ~/.mesos-viewer
 cp scripts/config.ini.template ~/.mesos-viewer/config.ini
 ```
 
-Make sure to use appropriate values for `master_ip` & `master_port`.
+Make sure to use appropriate values for `master_ip` & `master_port` and replace `username` with current user.
 
-# Examples
+#### Examples
 
 ```bash
 $ ./run.py  
+```
+
+#### Key Bindings
+```bash
+    ctrl + u      Page Up
+    ctrl + d      Page Down 
+    g             Scroll to First framework 
+    G             Scroll to Last framework 
+    j             Up 
+    k             Down 
+    r             Refresh 
+    s             Show framework WebUI link 
+    S,enter       Open framework WebUI link 
+    ctrl + r      Reload config 
+    n             Sort by `Name` 
+    c             Sort by `CPU` 
+    m             Sort by `Memory` 
+    u             Sort by `Uptime` 
+    t             Sort by `Upsince` 
+    /             Fuzzy Search
 ```
