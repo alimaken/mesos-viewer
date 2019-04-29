@@ -229,14 +229,20 @@ class MesosGui(object):
         return urwid.Padding(urwid.AttrWrap(urwid.Text(value, align=align), style))
 
     def get_row(self, caption = "", widget = None, align='center', style='header', length = 20):
+        lst = []
         caption_widget = ('fixed', length, urwid.Padding(urwid.AttrWrap(urwid.Text(caption, align=align), style)))
-        return urwid.Columns([caption_widget, widget], dividechars=1)
+        lst.append(caption_widget)
+        if widget:
+            lst.append(widget)
+        return urwid.Columns(lst, dividechars=1)
 
     def get_big_text(self, msg = "", font_cls = urwid.HalfBlock5x4Font, style = 'name'):
         return urwid.Padding(urwid.BigText((style, msg), font_cls()), width='clip')
 
     def build_core_metrics(self):
         return urwid.LineBox(urwid.Pile([
+            self.get_row("Mesos-Viewer"),
+            urwid.Divider(u' '),
             self.get_big_text(" Master * <{}>".format(self.cache_manager.current_master), font_cls = urwid.font.Thin6x6Font),
             urwid.Divider(u' '),
             self.get_row("CPUs % ", widget = urwid.ProgressBar('pg_normal', 'pg_complete', int(self.metrics.resources_master_cpus_percent * 100), 100, 1)),
@@ -258,7 +264,6 @@ class MesosGui(object):
         Build interface, refresh cache if needed, update frameworks listbox,
         create header, footer, view and the loop.
         """
-        # print(urwid.get_all_fonts())
 
         if self.cache_manager.is_outdated():
             self.cache_manager.refresh()
@@ -284,23 +289,16 @@ class MesosGui(object):
         self.footer = urwid.Columns(self.footer_content, dividechars=1)
         self.view = urwid.Frame(urwid.LineBox(urwid.AttrWrap(self.listbox, 'body')), header=self.build_header(), footer=self.build_footer())        
 
-        footer_text = [ ('title_style', "This is the footer"), "    ", ]
-        listbox = urwid.ListBox([urwid.Text("This is the body")])
+        # footer_text = [ ('title_style', "This is the footer"), "    ", ]
+        # listbox = urwid.ListBox([urwid.Text("This is the body")])
         header = self.build_core_metrics()
 
-        body = urwid.AttrWrap(listbox, 'body_style')
-        footer = urwid.AttrMap(urwid.Text(footer_text), 'footer_style')
+        # body = urwid.AttrWrap(listbox, 'body_style')
+        # footer = urwid.AttrMap(urwid.Text(footer_text), 'footer_style')
         frame2 = urwid.Frame(header = header, body = self.view)
 
         self.loop = urwid.MainLoop(
                 frame2,
-                # urwid.Pile([
-                #     # self.view_top,
-                #     # urwid.ProgressBar('pg_normal', 'pg_complete',50, 100),
-                #     frame2,
-                #     self.view
-                # ]),
-
                 self.palette,
                 screen=self.ui,
                 handle_mouse=True,
