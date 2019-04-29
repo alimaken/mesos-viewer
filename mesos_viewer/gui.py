@@ -291,11 +291,11 @@ class MesosGui(object):
 
         # footer_text = [ ('title_style', "This is the footer"), "    ", ]
         # listbox = urwid.ListBox([urwid.Text("This is the body")])
-        header = self.build_core_metrics()
+        self.metric_view = self.build_core_metrics()
 
         # body = urwid.AttrWrap(listbox, 'body_style')
         # footer = urwid.AttrMap(urwid.Text(footer_text), 'footer_style')
-        frame2 = urwid.Frame(header = header, body = self.view)
+        frame2 = urwid.Frame(header = self.metric_view, body = self.view)
 
         self.loop = urwid.MainLoop(
                 frame2,
@@ -367,6 +367,8 @@ class MesosGui(object):
             self.cache_manager.refresh(which)
         frameworks = self.cache_manager.get_frameworks(which)
         self.frameworks = frameworks
+        self.metrics = self.cache_manager.get_metrics()
+        self.metric_view = self.build_core_metrics()
         self.update_frameworks(self.filter_frameworks(frameworks))
         if header is not None:
             self.set_header_component(header)
