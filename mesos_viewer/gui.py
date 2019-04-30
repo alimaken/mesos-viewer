@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import sys
+import datetime
 import urwid
 import subprocess
 import threading
@@ -14,6 +15,7 @@ from mesos_viewer.poller import Poller
 from mesos_viewer.config import Config
 from mesos_viewer import __version__
 from eliot import start_action, to_file
+
 
 class ItemWidget(urwid.WidgetWrap):
     """ Widget of listbox, represent each framework """
@@ -242,8 +244,10 @@ class MesosGui(object):
     def build_core_metrics(self):
         return urwid.LineBox(urwid.Pile([
             self.get_row("Mesos-Viewer"),
+            self.get_row(str(datetime.datetime.now())),
             urwid.Divider(u' '),
             self.get_big_text(" Master * <{}>".format(self.cache_manager.current_master), font_cls = urwid.font.Thin6x6Font),
+            self.get_big_text(str(datetime.datetime.now()), font_cls = urwid.font.Thin3x3Font),
             urwid.Divider(u' '),
             self.get_row("CPUs % ", widget = urwid.ProgressBar('pg_normal', 'pg_complete', int(self.metrics.resources_master_cpus_percent * 100), 100, 1)),
             urwid.Divider(u' '),
@@ -295,10 +299,10 @@ class MesosGui(object):
 
         # body = urwid.AttrWrap(listbox, 'body_style')
         # footer = urwid.AttrMap(urwid.Text(footer_text), 'footer_style')
-        frame2 = urwid.Frame(header = self.metric_view, body = self.view)
+        self.frame2 = urwid.Frame(header = self.metric_view, body = self.view)
 
         self.loop = urwid.MainLoop(
-                frame2,
+                self.frame2,
                 self.palette,
                 screen=self.ui,
                 handle_mouse=True,
@@ -306,6 +310,8 @@ class MesosGui(object):
 
         self.build_help()
         self.already_build = True
+
+    
 
     @staticmethod
     def get_fixed_header(msg='empty', style='header', align='center', length=20):
@@ -355,24 +361,14 @@ class MesosGui(object):
     def get_timer(self):
         return urwid.AttrWrap(urwid.Text(str(self.poller.counter), align="center"), 'title')
 
-    def async_update_timer(self, counter=0, delay=10):
-        remaining = int(delay - counter)
-        self.set_header_component("Updating in {}s".format(str(remaining)), section_id=2, style='bad_name')
-        self.loop.draw_screen()
-
-    def async_refresher(self, which=None, header=None, force=False):
-        if which is None:
-            which = self.which
-        if self.cache_manager.is_outdated(which) or force:
-            self.cache_manager.refresh(which)
-        frameworks = self.cache_manager.get_frameworks(which)
-        self.frameworks = frameworks
+    def async_refresher(self, header=None, force=False):
+        if self.cache_manager.is_outdated() or force:
+            self.cache_manager.refresh()
+        self.frameworks = self.cache_manager.get_frameworks()
         self.metrics = self.cache_manager.get_metrics()
-        self.metric_view = self.build_core_metrics()
-        self.update_frameworks(self.filter_frameworks(frameworks))
-        if header is not None:
-            self.set_header_component(header)
-            self.which = which
+        self.update_frameworks(self.filter_frameworks(self.frameworks))
+        self.set_footer_component('', 0)
+        self.loop.widget.base_widget.header = self.build_core_metrics()
         self.loop.draw_screen()
 
     def set_help(self):
