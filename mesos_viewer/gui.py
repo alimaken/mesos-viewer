@@ -243,11 +243,10 @@ class MesosGui(object):
 
     def build_core_metrics(self):
         return urwid.LineBox(urwid.Pile([
-            self.get_row("Mesos-Viewer"),
-            self.get_row(str(datetime.datetime.now())),
+            self.get_row("Mesos-Viewer", urwid.AttrWrap(urwid.Text(str(datetime.datetime.now()), align="right"), 'header')),
             urwid.Divider(u' '),
             self.get_big_text(" Master * <{}>".format(self.cache_manager.current_master), font_cls = urwid.font.Thin6x6Font),
-            self.get_big_text(str(datetime.datetime.now()), font_cls = urwid.font.Thin3x3Font),
+            # self.get_big_text(str(datetime.datetime.now()), font_cls = urwid.font.Thin3x3Font),
             urwid.Divider(u' '),
             self.get_row("CPUs % ", widget = urwid.ProgressBar('pg_normal', 'pg_complete', int(self.metrics.resources_master_cpus_percent * 100), 100, 1)),
             urwid.Divider(u' '),
