@@ -53,6 +53,8 @@ class Config(object):
             self.parser.set('keybindings', 'open_framework_link', 'S,enter')
         if not self.parser.has_option('keybindings', 'reload_config'):
             self.parser.set('keybindings', 'reload_config', 'ctrl R')
+        if not self.parser.has_option('keybindings', 'show_metrics'):
+            self.parser.set('keybindings', 'show_metrics', 'z')
 
         if not self.parser.has_option('keybindings', 'sort_by_name'):
             self.parser.set('keybindings', 'sort_by_name', 'n')

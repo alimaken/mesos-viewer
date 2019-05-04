@@ -9,11 +9,14 @@ refresh = r
 show_framework_link = s
 open_framework_link = S,enter
 reload_config = ctrl R
+show_metrics = z
 sort_by_name = n
 sort_by_cpu = c
 sort_by_mem = m
 sort_by_uptime = u
 sort_by_upsince = t
+search = /
+exit_search = escape
 
 [settings]
 cache = /home/maken/.mesos-viewer/cache
@@ -26,6 +29,7 @@ master_ip = localhost
 master_port = 5040
 mesos_frameworks_url = /master/frameworks
 mesos_metrics_url = /metrics/snapshot
+mesos_redirect_url = /master/redirect
 
 [colors]
 body = default|
@@ -37,3 +41,6 @@ title = dark red,bold|light gray
 name = light green,bold|
 bad_name = light red,bold,standout|
 help = black,standout|dark magenta
+pg_normal = white|black|standout
+pg_complete = white|dark red
+pg_smooth = dark magenta|black

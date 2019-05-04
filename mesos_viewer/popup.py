@@ -28,8 +28,13 @@ class Popup(urwid.WidgetWrap):
         height = len(menu_list)
         width = 0
         for entry in menu_list:
-            if len(entry.original_widget.text) > width:
-                width = len(entry.original_widget.text)
+            base_widget = entry.base_widget
+            base_widget_len = (
+                (len(base_widget[0].text) + len(base_widget[1].text)) \
+                if type(base_widget) == urwid.container.Columns \
+                else len(base_widget.text))
+            if base_widget_len > width:
+                width = base_widget_len + 10
 
         # Create the ListBox widget and put it on top of body:
         self._listbox = urwid.AttrWrap(urwid.ListBox(content), attr[0])

@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+from .common.helpers import Helpers as helpers
+
 
 class Metrics(object):
     """
@@ -53,7 +56,7 @@ class Metrics(object):
         """
         Prints details of the framework.
         """
-        print("resources_master_cpus_percent = " + str(self.resources_master_cpus_percent))
+        print("resources_master_cpus_percent = " + str(helpers.get_percent(str(self.resources_master_cpus_percent))))
         print("resources_master_cpus_total = " + str(self.resources_master_cpus_total))
         print("resources_master_cpus_used = " + str(self.resources_master_cpus_used))
         print("resources_master_mem_percent = " + str(self.resources_master_mem_percent))

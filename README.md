@@ -25,6 +25,7 @@ $ ./run.py
 
 #### Key Bindings
 ```bash
+    h,H,?         Show help
     ctrl + u      Page Up
     ctrl + d      Page Down 
     g             Scroll to First framework 
@@ -35,6 +36,7 @@ $ ./run.py
     s             Show framework WebUI link 
     S,enter       Open framework WebUI link 
     ctrl + r      Reload config 
+    z             Show Mesos Metrics popul
     n             Sort by `Name` 
     c             Sort by `CPU` 
     m             Sort by `Memory` 

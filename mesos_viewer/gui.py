@@ -15,6 +15,7 @@ from mesos_viewer.poller import Poller
 from mesos_viewer.config import Config
 from mesos_viewer import __version__
 from eliot import start_action, to_file
+from .common.helpers import Helpers as helpers
 
 
 class ItemWidget(urwid.WidgetWrap):
@@ -134,22 +135,12 @@ class MesosGui(object):
         self.sort_asc = "▲"
         self.sort_desc = "▼"
         self.col_name = "FRAMEWORKS"
-        self.col_name_asc = "FRAMEWORKS▲"
-        self.col_name_desc = "FRAMEWORKS▼"
         self.col_memory = "MEM"
-        self.col_memory_asc = "MEM▲"
-        self.col_memory_desc = "MEM▼"
         self.col_cpus = "CPUs"
-        self.col_cpus_asc = "CPUs▲"
-        self.col_cpus_desc = "CPUs▼"
         self.col_uptime = "UPTIME"
-        self.col_uptime_asc = "UPTIME▲"
-        self.col_uptime_desc = "UPTIME▼"
         self.col_upsince = "UP SINCE"
         self.TEXT_CAPTION = " >> "
         self.widgetEdit = urwid.Edit(self.TEXT_CAPTION, "", multiline=False)
-        # self.widgetEdit = EscapableEditBox(self.TEXT_CAPTION, "", multiline=False)
-        # self.widgetEdit.set_instance(self)
 
         self.frameworks = []
         self.search_string = ""
@@ -165,6 +156,26 @@ class MesosGui(object):
         with start_action(action_type="build_interface"):
             self.build_interface()
         self.ui.run_wrapper(self.run)
+
+    def build_metrics(self):
+        """ Fetch all metrics and build metrics popup """
+        self.metrics = self.cache_manager.get_metrics()
+        self.metrics_msg = []
+        title = urwid.AttrWrap(urwid.Text('\n Mesos Metrics \n'), 'title')
+        self.metrics_msg.append(title)
+        self.metrics_msg.append(urwid.AttrWrap(urwid.Text(''), 'help'))
+        for key, value in self.metrics.__dict__.items():
+            val = value if "percent" not in key else "{}%".format(helpers.get_percent_str(value))
+            line = urwid.Columns([
+                urwid.AttrWrap(urwid.Text(" {}".format(key)), 'help'),
+                ('fixed', 19, urwid.AttrWrap(urwid.Text("{} ".format(str(val)), align="right"), 'help'))
+            ])
+            self.metrics_msg.append(line)
+        self.metrics_msg.append(urwid.AttrWrap(urwid.Text(''), 'help'))
+        self.metrics_msg.append(urwid.AttrWrap(urwid.Text(''), 'help'))
+        self.metrics_msg.append(urwid.AttrWrap(urwid.Text(''), 'help'))
+        self.metrics_msg.append(urwid.AttrWrap(urwid.Text(''), 'help'))
+        self.metrics_popup = Popup(self.metrics_msg, ('Mesos Metrics', 'help'), (0, 1), self.view)
 
     def build_help(self):
         """ Fetch all key bindings and build help message """
@@ -243,10 +254,9 @@ class MesosGui(object):
 
     def build_core_metrics(self):
         return urwid.LineBox(urwid.Pile([
-            self.get_row("Mesos-Viewer", urwid.AttrWrap(urwid.Text(str(datetime.datetime.now()), align="right"), 'header')),
+            self.get_row("Mesos-Viewer", urwid.AttrWrap(urwid.Text("Last updated @ [{}]".format(str(datetime.datetime.now())), align="right"), 'header')),
             urwid.Divider(u' '),
             self.get_big_text(" Master * <{}>".format(self.cache_manager.current_master), font_cls = urwid.font.Thin6x6Font),
-            # self.get_big_text(str(datetime.datetime.now()), font_cls = urwid.font.Thin3x3Font),
             urwid.Divider(u' '),
             self.get_row("CPUs % ", widget = urwid.ProgressBar('pg_normal', 'pg_complete', int(self.metrics.resources_master_cpus_percent * 100), 100, 1)),
             urwid.Divider(u' '),
@@ -260,7 +270,6 @@ class MesosGui(object):
     def build_header(self):
         self.header = self.build_header_columns()
         return self.header
-
 
     def build_interface(self):
         """
@@ -292,26 +301,21 @@ class MesosGui(object):
         self.footer = urwid.Columns(self.footer_content, dividechars=1)
         self.view = urwid.Frame(urwid.LineBox(urwid.AttrWrap(self.listbox, 'body')), header=self.build_header(), footer=self.build_footer())        
 
-        # footer_text = [ ('title_style', "This is the footer"), "    ", ]
-        # listbox = urwid.ListBox([urwid.Text("This is the body")])
         self.metric_view = self.build_core_metrics()
 
-        # body = urwid.AttrWrap(listbox, 'body_style')
-        # footer = urwid.AttrMap(urwid.Text(footer_text), 'footer_style')
-        self.frame2 = urwid.Frame(header = self.metric_view, body = self.view)
+        self.main_frame = urwid.Frame(header = self.metric_view, body = self.view)
 
         self.loop = urwid.MainLoop(
-                self.frame2,
+                self.main_frame,
                 self.palette,
                 screen=self.ui,
                 handle_mouse=True,
                 unhandled_input=self.keystroke)
 
         self.build_help()
+        self.build_metrics()
         self.already_build = True
-
     
-
     @staticmethod
     def get_fixed_header(msg='empty', style='header', align='center', length=20):
         return ('fixed', length, urwid.Padding(urwid.AttrWrap(urwid.Text(msg, align=align), style)))
@@ -345,7 +349,6 @@ class MesosGui(object):
 
         if self.already_build:
             self.walker[:] = items
-            # self.update()
         else:
             self.walker = urwid.SimpleListWalker(items)
             self.listbox = urwid.ListBox(self.walker)
@@ -392,7 +395,6 @@ class MesosGui(object):
         self.in_search = True
         self.footer_content[0] = self.widgetEdit
         self.view.set_footer(urwid.Columns(self.footer_content, dividechars=1))
-        # self.widgetEdit.set_focus(2)
         self.view.focus_position = 'footer'
 
 
@@ -400,8 +402,6 @@ class MesosGui(object):
         self.in_search = False
         self.set_footer_component("", section_id=0)
         self.view.focus_position = 'body'
-        # self.widgetEdit.set_edit_text("")
-        # self.search_string = ""
 
     def filter_frameworks(self, frameworks):
         if self.search_string:
@@ -414,103 +414,109 @@ class MesosGui(object):
         self.loop.draw_screen()
 
     def handle_search(self, widget, newtext):
-        # debug.set_text("Edit widget changed to %s" % newtext)
         self.search_string = newtext.strip()
         self.filter_items()
 
     def keystroke(self, user_input):
         """ All key bindings are computed here """
+        with start_action(action_type="get_frameworks: get_json", user_input=user_input):
 
+            if user_input == 'enter':
+                self.dectivate_search()
 
-        if user_input == 'enter':
-            # msg = self.widgetEdit.get_edit_text()
-            self.dectivate_search()
+            if user_input == 'escape' and self.in_search:
+                self.dectivate_search()
 
-        if user_input == 'escape' and self.in_search:
-            self.dectivate_search()
+            # QUIT
+            if user_input in ('q', 'Q'):
+                self.exit(must_raise=True)
 
+            if user_input in self.bindings['open_framework_link'].split(','):
+                selected_item = self.listbox.get_focus()[0]
+                if selected_item:
+                    self.open_webbrowser(selected_item.url)
+            if user_input in self.bindings['show_framework_link'].split(','):
+                selected_item = self.listbox.get_focus()[0]
+                if selected_item:
+                    self.set_footer_component(msg=self.listbox.get_focus()[0].url, section_id=0)
 
-        # QUIT
-        if user_input in ('q', 'Q'):
-            self.exit(must_raise=True)
+            # MOVEMENTS
+            if user_input in self.bindings['down'].split(
+                    ',') and self.listbox.focus_position - 1 in self.walker.positions():
+                self.listbox.set_focus(
+                        self.walker.prev_position(self.listbox.focus_position))
+            if user_input in self.bindings['up'].split(',') and self.listbox.focus_position + 1 in self.walker.positions():
+                self.listbox.set_focus(
+                        self.walker.next_position(self.listbox.focus_position))
+            if user_input in self.bindings['page_up'].split(','):
+                self.listbox._keypress_page_up(self.ui.get_cols_rows())
+            if user_input in self.bindings['page_down'].split(','):
+                self.listbox._keypress_page_down(self.ui.get_cols_rows())
+            if user_input in self.bindings['first_framework'].split(','):
+                self.listbox.set_focus(self.walker.positions()[0])
+            if user_input in self.bindings['last_framework'].split(','):
+                self.listbox.set_focus(self.walker.positions()[-1])
 
-        if user_input in self.bindings['open_framework_link'].split(','):
-            selected_item = self.listbox.get_focus()[0]
-            if selected_item:
-                self.open_webbrowser(selected_item.url)
-        if user_input in self.bindings['show_framework_link'].split(','):
-            selected_item = self.listbox.get_focus()[0]
-            if selected_item:
-                self.set_footer_component(msg=self.listbox.get_focus()[0].url, section_id=0)
+            if user_input in self.bindings['search'].split(','):
+                self.activate_search()
+            if user_input in self.bindings['exit_search'].split(','):
+                self.dectivate_search()
 
-        # MOVEMENTS
-        if user_input in self.bindings['down'].split(
-                ',') and self.listbox.focus_position - 1 in self.walker.positions():
-            self.listbox.set_focus(
-                    self.walker.prev_position(self.listbox.focus_position))
-        if user_input in self.bindings['up'].split(',') and self.listbox.focus_position + 1 in self.walker.positions():
-            self.listbox.set_focus(
-                    self.walker.next_position(self.listbox.focus_position))
-        if user_input in self.bindings['page_up'].split(','):
-            self.listbox._keypress_page_up(self.ui.get_cols_rows())
-        if user_input in self.bindings['page_down'].split(','):
-            self.listbox._keypress_page_down(self.ui.get_cols_rows())
-        if user_input in self.bindings['first_framework'].split(','):
-            self.listbox.set_focus(self.walker.positions()[0])
-        if user_input in self.bindings['last_framework'].split(','):
-            self.listbox.set_focus(self.walker.positions()[-1])
+            # SORT
+            if user_input in self.bindings['sort_by_name'].split(','):
+                self.sort_on = "name"
+                self.sort_reverse = not self.sort_reverse
+                self.sort_items()
+            if user_input in self.bindings['sort_by_cpu'].split(','):
+                self.sort_on = "cpus"
+                self.sort_reverse = not self.sort_reverse
+                self.sort_items()
+            if user_input in self.bindings['sort_by_mem'].split(','):
+                self.sort_on = "memory"
+                self.sort_reverse = not self.sort_reverse
+                self.sort_items()
+            if user_input in self.bindings['sort_by_uptime'].split(','):
+                self.sort_on = "uptime"
+                self.sort_reverse = not self.sort_reverse
+                self.sort_items()
+            if user_input in self.bindings['sort_by_upsince'].split(','):
+                self.sort_on = "upsince"
+                self.sort_reverse = not self.sort_reverse
+                self.sort_items()
+            if user_input in self.bindings['last_framework'].split(','):
+                self.listbox.set_focus(self.walker.positions()[-1])
 
-        if user_input in self.bindings['search'].split(','):
-            self.activate_search()
-        if user_input in self.bindings['exit_search'].split(','):
-            self.dectivate_search()
+            # OTHERS
+            if user_input in self.bindings['refresh'].split(','):
+                self.set_footer_component('Refreshing new frameworks...', 0)
+                threading.Thread(None, self.async_refresher, None, (), {'force': True}).start()
 
+            if user_input in self.bindings['reload_config'].split(','):
+                self.reload_config()
+            if user_input in ('h', 'H', '?'):
+                keys = True
+                while True:
+                    if keys:
+                        self.ui.draw_screen(
+                                self.ui.get_cols_rows(),
+                                self.help.render(self.ui.get_cols_rows(), True))
+                        keys = self.ui.get_input()
+                        if 'h' or 'H' or '?' or 'escape' in keys:
+                            break
+            if user_input in ('z'):
+                keys = True
+                while True:
+                    if keys:
+                        self.ui.draw_screen(
+                                self.ui.get_cols_rows(),
+                                self.metrics_popup.render(self.ui.get_cols_rows(), True))
+                        keys = self.ui.get_input()
+                        if 'z' or 'escape' in keys:
+                            break
 
-        # SORT
-        if user_input in self.bindings['sort_by_name'].split(','):
-            self.sort_on = "name"
-            self.sort_reverse = not self.sort_reverse
-            self.sort_items()
-        if user_input in self.bindings['sort_by_cpu'].split(','):
-            self.sort_on = "cpus"
-            self.sort_reverse = not self.sort_reverse
-            self.sort_items()
-        if user_input in self.bindings['sort_by_mem'].split(','):
-            self.sort_on = "memory"
-            self.sort_reverse = not self.sort_reverse
-            self.sort_items()
-        if user_input in self.bindings['sort_by_uptime'].split(','):
-            self.sort_on = "uptime"
-            self.sort_reverse = not self.sort_reverse
-            self.sort_items()
-        if user_input in self.bindings['sort_by_upsince'].split(','):
-            self.sort_on = "upsince"
-            self.sort_reverse = not self.sort_reverse
-            self.sort_items()
-        if user_input in self.bindings['last_framework'].split(','):
-            self.listbox.set_focus(self.walker.positions()[-1])
-
-
-        # OTHERS
-        if user_input in self.bindings['refresh'].split(','):
-            self.set_footer_component('Refreshing new frameworks...', 0)
-            threading.Thread(None, self.async_refresher, None, (), {'force': True}).start()
-
-        if user_input in self.bindings['reload_config'].split(','):
-            self.reload_config()
-        if user_input in ('h', 'H', '?'):
-            keys = True
-            while True:
-                if keys:
-                    self.ui.draw_screen(
-                            self.ui.get_cols_rows(),
-                            self.help.render(self.ui.get_cols_rows(), True))
-                    keys = self.ui.get_input()
-                    if 'h' or 'H' or '?' or 'escape' in keys:
-                        break
-        # MOUSE
-        if len(user_input) > 1 and user_input[0] == 'ctrl mouse release':
-            self.open_webbrowser(self.listbox.get_focus()[0].url)
+            # MOUSE
+            if len(user_input) > 1 and user_input[0] == 'ctrl mouse release':
+                self.open_webbrowser(self.listbox.get_focus()[0].url)
 
     def reload_config(self):
         """
@@ -520,6 +526,7 @@ class MesosGui(object):
         self.set_footer_component(msg='Reloading configuration', section_id=0)
         self.config = Config()
         self.build_help()
+        self.build_metrics()
         self.palette = self.config.get_palette()
         self.build_interface()
         self.loop.draw_screen()
@@ -562,7 +569,6 @@ class MesosGui(object):
         urwid.ExitMainLoop()
 
     def run(self):
-        # urwid.connect_signal(self.walker, 'modified', self.update)
         urwid.connect_signal(self.widgetEdit, 'change', self.handle_search)
 
         try:
@@ -571,6 +577,7 @@ class MesosGui(object):
         except KeyboardInterrupt:
             self.exit()
         print('Exiting...!!')
+
 
 class EscapableEditBox(MesosGui, urwid.Edit):
     def __init__(self):

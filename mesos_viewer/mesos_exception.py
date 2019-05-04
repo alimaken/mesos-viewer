@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 class MesosException(Exception):
     """
     MesosException is exactly the same as a plain Python Exception.
